@@ -15,7 +15,7 @@ use common\models\Tender as TenderModel;
  */
 class Tender extends Component
 {
-    private const BASE_URL_TENDERS = 'https://public.api.openprocurement.org/api/0/tenders?descending=1&limit=10';
+    private const BASE_URL_TENDERS = 'https://public.api.openprocurement.org/api/0/tenders?descending=1';
     private const BASE_URL_TENDER = 'https://public.api.openprocurement.org/api/0/tenders/';
 
     private $_curl;
@@ -27,13 +27,18 @@ class Tender extends Component
     {
         $this->_curl = new curl\Curl();
 
-        $resp = $this->_curl->get(self::BASE_URL_TENDERS);
+        $url = self::BASE_URL_TENDERS;
+        for ($i = 0; $i < 10; $i++) {
+            $resp = $this->_curl->get($url);
 
-        if ($this->_curl->errorCode !== null) {
-            throw new \Exception('Error code curl ' . $this->_curl->errorCode);
+            if ($this->_curl->errorCode !== null) {
+                throw new \Exception('Error code curl ' . $this->_curl->errorCode);
+            }
+            $data = Json::decode($resp);
+            $this->handlingTender($data);
+
+            $url = $data['next_page']['uri'];
         }
-        $data = Json::decode($resp);
-        $this->handlingTender($data);
     }
 
     /**
@@ -47,6 +52,10 @@ class Tender extends Component
     {
         foreach ($data['data'] as $temp) {
             $resp = $this->_curl->get(self::BASE_URL_TENDER . $temp['id']);
+            if ($this->_curl->errorCode !== null) {
+                throw new \Exception('Error tender code curl ' . $this->_curl->errorCode);
+            }
+
             $tender = Json::decode($resp);
             $transaction = Yii::$app->db->beginTransaction();
             try {
