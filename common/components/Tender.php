@@ -9,6 +9,10 @@ use yii\db\Exception;
 use yii\helpers\Json;
 use common\models\Tender as TenderModel;
 
+/**
+ * Class Tender
+ * @package common\components
+ */
 class Tender extends Component
 {
     private const BASE_URL_TENDERS = 'https://public.api.openprocurement.org/api/0/tenders?descending=1&limit=10';
@@ -16,6 +20,9 @@ class Tender extends Component
 
     private $_curl;
 
+    /**
+     * @throws \Exception
+     */
     public function getTender()
     {
         $this->_curl = new curl\Curl();
@@ -29,7 +36,14 @@ class Tender extends Component
         $this->handlingTender($data);
     }
 
-    private function handlingTender($data)
+    /**
+     *
+     * Handling tenders
+     *
+     * @param array $data
+     * @throws \Exception
+     */
+    private function handlingTender(array $data)
     {
         foreach ($data['data'] as $temp) {
             $resp = $this->_curl->get(self::BASE_URL_TENDER . $temp['id']);
@@ -47,7 +61,7 @@ class Tender extends Component
                 if (!$model->save()) {
                     $message = null;
                     foreach ($model->getErrors() as $error) {
-                        $message .= $error[0] . "\n";
+                        $message .= "tenderID:" . $temp['id'] . "\t" . $error[0] . "\n";
                     }
                     throw new Exception($message);
                 }

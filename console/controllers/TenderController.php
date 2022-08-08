@@ -7,8 +7,15 @@ use common\components\Tender;
 use yii\console\Controller;
 use yii\helpers\Console;
 
+/**
+ * Class TenderController
+ * @package console\controllers
+ */
 class TenderController extends Controller
 {
+    /**
+     * Get tenders
+     */
     public function actionIndex()
     {
         $tender = new Tender();
